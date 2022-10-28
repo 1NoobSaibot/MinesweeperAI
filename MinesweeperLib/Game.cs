@@ -4,7 +4,7 @@ namespace MinesweeperLib
 {
   public class Game
   {
-    private readonly int _amountOfBombs;
+    public readonly int AmountOfBombs;
     private readonly Cell[,] _cells;
     private GameState _state = GameState.Created;
     public readonly int Seed;
@@ -14,6 +14,8 @@ namespace MinesweeperLib
     public int Height => _cells.GetLength(1);
     public int FirstClickX => _firstClickX;
     public int FirstClickY => _firstClickY;
+    public bool IsWon => _state == GameState.Won;
+    public event GameEvent OnGameOver;
 
 
     public Game(int width, int height, int bombs, int seed)
@@ -23,7 +25,7 @@ namespace MinesweeperLib
         throw new MinesweeperGameException($"Cannot place {bombs} bombs on a field {width}*{height}");
       }
 
-      _amountOfBombs = bombs;
+      AmountOfBombs = bombs;
       _cells = new Cell[width, height];
       Seed = seed;
     }
@@ -51,7 +53,12 @@ namespace MinesweeperLib
         return false;
       }
 
-      return _TryOpen(posX, posY);
+      if (_TryOpen(posX, posY))
+      {
+        _CheckWin();
+        return true;
+      }
+      return false;
 		}
 
 
@@ -64,6 +71,46 @@ namespace MinesweeperLib
 
       return _cells[posX, posY].InvertIsChecked();
 		}
+
+
+    public override bool Equals(object obj)
+    {
+      if (obj is Game game)
+      {
+        if (
+          game.Width != Width
+          || game.Height != Height
+          || game.AmountOfBombs != AmountOfBombs
+          || game.FirstClickX != FirstClickX
+          || game.FirstClickY != FirstClickY
+        )
+        {
+          return false;
+        }
+
+
+        // The situation when seeds are different but generated fields are the same is possible.
+        if (game.Seed == Seed)
+        {
+          return true;
+        }
+
+        for (int x = 0; x < Width; x++)
+        {
+          for (int y = 0; y < Height; y++)
+          {
+            if (game._cells[x, y].IsMined != _cells[x, y].IsMined)
+            {
+              return false;
+            }
+          }
+        }
+
+        return true;
+      }
+
+      return false;
+    }
 
 
     private void _Generate(int posX, int posY)
@@ -79,17 +126,23 @@ namespace MinesweeperLib
     private void _PlaceBombsExcept(int posX, int posY)
     {
 			Random random = new Random(Seed);
-			for (int i = 0; i < _amountOfBombs; i++)
+			for (int i = 0; i < AmountOfBombs; i++)
 			{
 				int x, y;
 				do
 				{
 					x = random.Next(Width);
 					y = random.Next(Height);
-				} while (_cells[x, y].IsMined || (x == posX && y == posY));
+				} while (_cells[x, y].IsMined || !isEnoughFar(x, y));
 
 				_cells[x, y].IsMined = true;
 			}
+
+
+      bool isEnoughFar(int x, int y)
+      {
+        return (Math.Abs(posX - x) + Math.Abs(posY - y)) > 2;
+      }
 		}
 
 
@@ -157,10 +210,41 @@ namespace MinesweeperLib
 
       if (res == -1)
       {
-        _state = GameState.Lost;
+        _SetGameLost();
       }
 
       return true;
+    }
+
+
+    private void _CheckWin()
+    {
+      for (int i = 0; i < Width; i++)
+      {
+        for (int j = 0; j < Height; j++)
+        {
+          if (_cells[i, j].IsComplete == false)
+          {
+            return;
+          }
+        }
+      }
+      
+      _SetGameWon();
+    }
+
+
+    private void _SetGameLost()
+    {
+			_state = GameState.Lost;
+      OnGameOver?.Invoke(this);
+		}
+
+
+    private void _SetGameWon()
+    {
+      _state = GameState.Won;
+      OnGameOver?.Invoke(this);
     }
   }
 
@@ -180,6 +264,7 @@ namespace MinesweeperLib
     public byte AmountOfBombsAround;
     public bool IsOpen { get; private set; }
     public bool IsChecked { get; private set; }
+    public bool IsComplete => IsMined ^ IsOpen;
 
     public bool InvertIsChecked()
     {
@@ -249,4 +334,7 @@ namespace MinesweeperLib
     Seven = 7,
     Eight = 8
   }
+
+
+  public delegate void GameEvent(Game game);
 }
