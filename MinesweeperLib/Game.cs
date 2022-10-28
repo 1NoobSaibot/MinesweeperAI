@@ -7,11 +7,16 @@ namespace MinesweeperLib
     private readonly int _amountOfBombs;
     private readonly Cell[,] _cells;
     private GameState _state = GameState.Created;
+    public readonly int Seed;
+    private int _firstClickX, _firstClickY;
 
     public int Width => _cells.GetLength(0);
     public int Height => _cells.GetLength(1);
+    public int FirstClickX => _firstClickX;
+    public int FirstClickY => _firstClickY;
 
-    public Game(int width, int height, int bombs)
+
+    public Game(int width, int height, int bombs, int seed)
     {
       if (width * height <= bombs)
       {
@@ -20,10 +25,16 @@ namespace MinesweeperLib
 
       _amountOfBombs = bombs;
       _cells = new Cell[width, height];
+      Seed = seed;
     }
 
 
-    public CellState GetCellState(int x, int y)
+		public Game(int width, int height, int bombs)
+      : this(width, height, bombs, new Random().Next())
+		{ }
+
+
+		public CellState GetCellState(int x, int y)
     {
       return _cells[x, y].ToCellState(_state == GameState.Lost);
     }
@@ -57,6 +68,8 @@ namespace MinesweeperLib
 
     private void _Generate(int posX, int posY)
     {
+      _firstClickX = posX;
+      _firstClickY = posY;
       _PlaceBombsExcept(posX, posY);
       _CountAmountsOfBombsForAllCells();
       _state = GameState.Generated;
@@ -65,7 +78,7 @@ namespace MinesweeperLib
 
     private void _PlaceBombsExcept(int posX, int posY)
     {
-			Random random = new Random();
+			Random random = new Random(Seed);
 			for (int i = 0; i < _amountOfBombs; i++)
 			{
 				int x, y;
