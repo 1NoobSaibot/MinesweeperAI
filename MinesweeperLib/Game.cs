@@ -44,14 +44,14 @@ namespace MinesweeperLib
 		}
 
 
-    public bool Check(int posX, int posY)
+    public bool InvertIsChecked(int posX, int posY)
     {
 			if (_state != GameState.Generated)
 			{
         return false;
 			}
 
-      return _cells[posX, posY].Check();
+      return _cells[posX, posY].InvertIsChecked();
 		}
 
 
@@ -168,14 +168,14 @@ namespace MinesweeperLib
     public bool IsOpen { get; private set; }
     public bool IsChecked { get; private set; }
 
-    public bool Check()
+    public bool InvertIsChecked()
     {
-      if (IsOpen || IsChecked)
+      if (IsOpen)
       {
         return false;
       }
 
-      IsChecked = true;
+      IsChecked = !IsChecked;
       return true;
     }
 

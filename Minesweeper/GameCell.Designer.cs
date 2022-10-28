@@ -28,19 +28,19 @@
 		/// </summary>
 		private void InitializeComponent()
 		{
-			this._button = new System.Windows.Forms.Button();
+			this._button = new System.Windows.Forms.Label();
 			this.SuspendLayout();
 			// 
 			// _button
 			// 
-			this._button.Dock = System.Windows.Forms.DockStyle.Fill;
-			this._button.Font = new System.Drawing.Font("Courier New", 24F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(204)));
-			this._button.Location = new System.Drawing.Point(0, 0);
+			this._button.Font = new System.Drawing.Font("Microsoft Sans Serif", 24F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(204)));
+			this._button.Location = new System.Drawing.Point(2, 2);
+			this._button.Margin = new System.Windows.Forms.Padding(0);
 			this._button.Name = "_button";
-			this._button.Size = new System.Drawing.Size(50, 50);
+			this._button.Size = new System.Drawing.Size(46, 46);
 			this._button.TabIndex = 0;
 			this._button.Text = "1";
-			this._button.UseVisualStyleBackColor = true;
+			this._button.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
 			this._button.Click += new System.EventHandler(this._button_Click);
 			// 
 			// GameCell
@@ -56,6 +56,6 @@
 
 		#endregion
 
-		private System.Windows.Forms.Button _button;
+		private System.Windows.Forms.Label _button;
 	}
 }

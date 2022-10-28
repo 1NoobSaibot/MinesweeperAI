@@ -45,7 +45,7 @@ namespace Minesweeper
 
 		private void _HandleOnCheck (int posX, int posY)
 		{
-			if (_game.Check(posX, posY))
+			if (_game.InvertIsChecked(posX, posY))
 			{
 				_gameField.UpdateCells(_game);
 			}

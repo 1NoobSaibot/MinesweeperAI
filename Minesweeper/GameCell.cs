@@ -22,19 +22,6 @@ namespace Minesweeper
 			PositionY = posY;
 		}
 
-		private void _button_Click(object sender, EventArgs e)
-		{
-			MouseEventArgs mouseEventArgs = (MouseEventArgs)e;
-			if (mouseEventArgs.Button == MouseButtons.Left)
-			{
-				OnOpen(PositionX, PositionY);
-			}
-			else if (mouseEventArgs.Button == MouseButtons.Right)
-			{
-				OnCheck(PositionX, PositionY);
-			}
-		}
-
 
 		internal void SetValue(CellState cellState)
 		{
@@ -49,7 +36,7 @@ namespace Minesweeper
 			_valueToStyle = new Dictionary<CellState, (string Text, Color back, Color font)>();
 
 			_valueToStyle.Add(CellState.Bomb, ("✹", Color.WhiteSmoke, Color.Orange));
-			_valueToStyle.Add(CellState.Checked, ("X", Color.WhiteSmoke, Color.Red));
+			_valueToStyle.Add(CellState.Checked, ("🚩", Color.WhiteSmoke, Color.Red));
 			_valueToStyle.Add(CellState.Closed, (String.Empty, Color.WhiteSmoke, Color.Black));
 			_valueToStyle.Add(CellState.Zero, (String.Empty, Color.White, Color.Black));
 			_valueToStyle.Add(CellState.One, ("1", Color.WhiteSmoke, Color.Blue));
@@ -60,6 +47,20 @@ namespace Minesweeper
 			_valueToStyle.Add(CellState.Six, ("6", Color.WhiteSmoke, Color.LightBlue));
 			_valueToStyle.Add(CellState.Seven, ("7", Color.WhiteSmoke, Color.Black));
 			_valueToStyle.Add(CellState.Eight, ("8", Color.WhiteSmoke, Color.White));
+		}
+
+
+		private void _button_Click(object sender, EventArgs e)
+		{
+			MouseEventArgs mouseEventArgs = (MouseEventArgs)e;
+			if (mouseEventArgs.Button == MouseButtons.Left)
+			{
+				OnOpen(PositionX, PositionY);
+			}
+			else if (mouseEventArgs.Button == MouseButtons.Right)
+			{
+				OnCheck(PositionX, PositionY);
+			}
 		}
 	}
 
