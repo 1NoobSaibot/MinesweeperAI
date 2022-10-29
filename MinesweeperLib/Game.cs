@@ -14,6 +14,7 @@ namespace MinesweeperLib
     public int Height => _cells.GetLength(1);
     public int FirstClickX => _firstClickX;
     public int FirstClickY => _firstClickY;
+    public bool IsGameOver => _state == GameState.Won || _state == GameState.Lost;
     public bool IsWon => _state == GameState.Won;
     public event GameEvent OnGameOver;
 
@@ -211,10 +212,52 @@ namespace MinesweeperLib
       if (res == -1)
       {
         _SetGameLost();
+        return true;
       }
 
+      if (_cells[x, y].AmountOfBombsAround == 0)
+      {
+        _OpenAroundZero(x, y);
+      }
       return true;
     }
+
+
+    private void _OpenAroundZero(int x, int y)
+    {
+			int[,] biases = new int[8, 2]
+			{
+				{ -1, -1 },
+				{ -1,  0 },
+				{ -1,  1 },
+				{  0,  1 },
+				{  1,  1 },
+				{  1,  0 },
+				{  1, -1 },
+				{  0, -1 }
+			};
+
+
+			for (int k = 0; k < 8; k++)
+			{
+				int ix = x + biases[k, 0];
+				int iy = y + biases[k, 1];
+
+				if (ix < 0 || ix >= Width || iy < 0 || iy >= Height)
+				{
+					continue;
+				}
+
+				if (_cells[ix, iy].IsOpen == false)
+				{
+          _cells[ix, iy].Open();
+          if (_cells[ix, iy].AmountOfBombsAround == 0)
+          {
+            _OpenAroundZero(ix, iy);
+          }
+				}
+			}
+		}
 
 
     private void _CheckWin()
