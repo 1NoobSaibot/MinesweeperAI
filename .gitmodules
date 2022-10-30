@@ -1,0 +1,4 @@
+[submodule "NeuroLib"]
+	path = NeuroLib
+	url = git@github.com:1NoobSaibot/NeuroLib.git
+	branch = develop
