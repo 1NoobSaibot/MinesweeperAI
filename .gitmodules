@@ -2,3 +2,6 @@
 	path = NeuroLib
 	url = git@github.com:1NoobSaibot/NeuroLib.git
 	branch = develop
+[submodule "GeneticAlgorithm"]
+	path = GeneticAlgorithm
+	url = git@github.com:1NoobSaibot/GeneticAlgorithm.git
