@@ -16,6 +16,9 @@ namespace MinesweeperLib
     public int FirstClickY => _firstClickY;
     public bool IsGameOver => _state == GameState.Won || _state == GameState.Lost;
     public bool IsWon => _state == GameState.Won;
+
+    public GameState State => _state;
+
     public event GameEvent OnGameOver;
 
 
@@ -39,7 +42,12 @@ namespace MinesweeperLib
 
 		public CellState GetCellState(int x, int y)
     {
-      return _cells[x, y].ToCellState(_state == GameState.Lost);
+      if (IsGameOver)
+      {
+        return _cells[x, y].ToRevealedCellState();
+      }
+
+      return _cells[x, y].ToHiddenCellState();
     }
 
 
@@ -72,6 +80,17 @@ namespace MinesweeperLib
 
       return _cells[posX, posY].InvertIsChecked();
 		}
+
+
+    public void GiveUp()
+    {
+      if (IsGameOver)
+      {
+        return;
+      }
+
+      _state = GameState.Lost;
+    }
 
 
     public override bool Equals(object obj)
@@ -223,21 +242,22 @@ namespace MinesweeperLib
     }
 
 
-    private void _OpenAroundZero(int x, int y)
+    private static readonly int[,] biases = new int[8, 2]
+		{
+			{ -1, -1 },
+			{ -1,  0 },
+			{ -1,  1 },
+			{  0,  1 },
+			{  1,  1 },
+			{  1,  0 },
+			{  1, -1 },
+			{  0, -1 }
+		};
+
+
+    // StackOverflow !!!
+		private void _OpenAroundZero(int x, int y)
     {
-			int[,] biases = new int[8, 2]
-			{
-				{ -1, -1 },
-				{ -1,  0 },
-				{ -1,  1 },
-				{  0,  1 },
-				{  1,  1 },
-				{  1,  0 },
-				{  1, -1 },
-				{  0, -1 }
-			};
-
-
 			for (int k = 0; k < 8; k++)
 			{
 				int ix = x + biases[k, 0];
@@ -248,9 +268,8 @@ namespace MinesweeperLib
 					continue;
 				}
 
-				if (_cells[ix, iy].IsOpen == false)
+				if (_cells[ix, iy].IsOpen == false && _cells[ix, iy].Open() == 1)
 				{
-          _cells[ix, iy].Open();
           if (_cells[ix, iy].AmountOfBombsAround == 0)
           {
             _OpenAroundZero(ix, iy);
@@ -332,20 +351,14 @@ namespace MinesweeperLib
       return IsMined ? -1 : 1;
     }
 
-    internal CellState ToCellState(bool showBombs = false)
+    internal CellState ToHiddenCellState()
     {
-      if (IsChecked)
-      {
-        return CellState.Checked;
-      }
-
-      if (showBombs && IsMined)
-      {
-        return CellState.Bomb;
-      }
-
       if (!IsOpen)
       {
+        if (IsChecked)
+        {
+          return CellState.Checked;
+        }
         return CellState.Closed;
       }
 
@@ -353,9 +366,39 @@ namespace MinesweeperLib
     }
 
 
-    public override string ToString()
+		internal CellState ToRevealedCellState()
+		{
+      if (!IsOpen)
+      {
+        if (IsChecked)
+        {
+          if (IsMined)
+          {
+            return CellState.CheckedRight;
+          }
+          return CellState.CheckedFail;
+        }
+
+        if (IsMined)
+        {
+          return CellState.Bomb;
+        }
+
+        return CellState.Closed;
+      }
+
+			if (IsMined)
+			{
+				return CellState.ExplodedBomb;
+			}
+
+			return (CellState)AmountOfBombsAround;
+		}
+
+
+		public override string ToString()
     {
-      return ToCellState().ToString()
+      return ToHiddenCellState().ToString()
         + (IsMined ? " Mined" : String.Empty)
         + (AmountOfBombsAround > 0 ? AmountOfBombsAround.ToString() : String.Empty);
     }
@@ -364,9 +407,6 @@ namespace MinesweeperLib
 
   public enum CellState
   {
-    Bomb = -3,
-    Checked = -2,
-    Closed = -1,
     Zero = 0,
     One = 1,
     Two = 2,
@@ -375,8 +415,14 @@ namespace MinesweeperLib
     Five = 5,
     Six = 6,
     Seven = 7,
-    Eight = 8
-  }
+    Eight = 8,
+    Closed,
+    Checked,
+    ExplodedBomb,
+		CheckedRight,
+		CheckedFail,
+		Bomb
+	}
 
 
   public delegate void GameEvent(Game game);

@@ -23,6 +23,15 @@ namespace Minesweeper
 		}
 
 
+		public void UpdateCells()
+		{
+			if (_game != null)
+			{
+				_gameField.UpdateCells(_game);
+			}
+		}
+
+
 		private void InitField(Game game)
 		{
 			_gameField = new GameField(game.Width, game.Height);

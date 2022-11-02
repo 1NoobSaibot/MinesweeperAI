@@ -36,7 +36,10 @@ namespace Minesweeper
 			_valueToStyle = new Dictionary<CellState, (string Text, Color back, Color font)>();
 
 			_valueToStyle.Add(CellState.Bomb, ("✹", Color.WhiteSmoke, Color.Orange));
+			_valueToStyle.Add(CellState.ExplodedBomb, ("✹", Color.Red, Color.Black));
 			_valueToStyle.Add(CellState.Checked, ("🚩", Color.WhiteSmoke, Color.Red));
+			_valueToStyle.Add(CellState.CheckedRight, ("🚩", Color.WhiteSmoke, Color.Green));
+			_valueToStyle.Add(CellState.CheckedFail, ("🚩", Color.WhiteSmoke, Color.Blue));
 			_valueToStyle.Add(CellState.Closed, (String.Empty, Color.WhiteSmoke, Color.Black));
 			_valueToStyle.Add(CellState.Zero, (String.Empty, Color.White, Color.Black));
 			_valueToStyle.Add(CellState.One, ("1", Color.WhiteSmoke, Color.Blue));

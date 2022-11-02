@@ -49,11 +49,19 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Form1.cs">
+    <Compile Include="AIGamePlayer.cs" />
+    <Compile Include="AIGameView.cs">
       <SubType>Form</SubType>
     </Compile>
-    <Compile Include="Form1.Designer.cs">
-      <DependentUpon>Form1.cs</DependentUpon>
+    <Compile Include="AIGameView.Designer.cs">
+      <DependentUpon>AIGameView.cs</DependentUpon>
+    </Compile>
+    <Compile Include="ModelStorage.cs" />
+    <Compile Include="HumanGameView.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="HumanGameView.Designer.cs">
+      <DependentUpon>HumanGameView.cs</DependentUpon>
     </Compile>
     <Compile Include="GameCell.cs">
       <SubType>UserControl</SubType>
@@ -74,10 +82,14 @@
       <DependentUpon>GameView.cs</DependentUpon>
     </Compile>
     <Compile Include="GoodGameStorage.cs" />
+    <Compile Include="NeuralNetworkSearcher.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <EmbeddedResource Include="Form1.resx">
-      <DependentUpon>Form1.cs</DependentUpon>
+    <EmbeddedResource Include="AIGameView.resx">
+      <DependentUpon>AIGameView.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="HumanGameView.resx">
+      <DependentUpon>HumanGameView.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="GameCell.resx">
       <DependentUpon>GameCell.cs</DependentUpon>
@@ -109,9 +121,17 @@
     <None Include="App.config" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\GeneticAlgorithm\GeneticAlgorithm\GeneticAlgorithm.csproj">
+      <Project>{82ab038b-8b32-4270-a382-e89f242f0435}</Project>
+      <Name>GeneticAlgorithm</Name>
+    </ProjectReference>
     <ProjectReference Include="..\MinesweeperLib\MinesweeperLib.csproj">
       <Project>{B2FE5392-856B-4676-9BDB-A291778C0114}</Project>
       <Name>MinesweeperLib</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\NeuroLib\NeuroLib\NeuroLib.csproj">
+      <Project>{787239AE-363A-46D5-80DF-28D58E4C0D51}</Project>
+      <Name>NeuroLib</Name>
     </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

@@ -1,6 +1,6 @@
 ﻿namespace Minesweeper
 {
-	partial class Form1
+	partial class HumanGameView
 	{
 		/// <summary>
 		/// Обязательная переменная конструктора.

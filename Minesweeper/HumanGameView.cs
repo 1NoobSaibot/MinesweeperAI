@@ -4,12 +4,12 @@ using System.Windows.Forms;
 
 namespace Minesweeper
 {
-	public partial class Form1 : Form
+	public partial class HumanGameView : Form
 	{
 		private Game _game;
 
 
-		public Form1()
+		public HumanGameView()
 		{
 			InitializeComponent();
 			_CreateGame();
@@ -18,7 +18,7 @@ namespace Minesweeper
 
 		private void _CreateGame()
 		{
-			_game = new Game(10, 10, 20);
+			_game = new Game(10, 10, 18);
 			gameView1.AttachToGame(_game);
 			_game.OnGameOver += _OnGameOver;
 		}
