@@ -1,85 +1,48 @@
-﻿using MinesweeperLib;
-using NeuroLib;
+﻿using NeuroLib;
 using Newtonsoft.Json;
-using System.Collections.Generic;
-using System.IO;
 
 namespace Minesweeper
 {
-	internal static class ModelStorage
+	class ModelStorage : Storage<NeuralNetworkDto[]>
 	{
-		private const string fileName = "AI.json";
-		private static List<Game> _games;
+		private const string _fileNamePrefix = "AI_5x5_";
+
+		public ModelStorage(int forAmountOfLayer) : base(_fileNamePrefix + forAmountOfLayer)
+		{ }
 
 
-		static ModelStorage ()
+		public NeuralNetwork[] GetNetworks()
 		{
-			_Load();
+			if (Data == null)
+			{
+				return new NeuralNetwork[0];
+			}
+
+			NeuralNetwork[] res = new NeuralNetwork[Data.Length];
+			for (int i = 0; i < res.Length; i++)
+			{
+				res[i] = Data[i].BuildNetwork();
+			}
+
+			return res;
 		}
 
 
-		public static void SaveGame(Game game)
+		public void Save(NeuralNetwork[] networks)
 		{
-			if (_TryToInsertGame(game))
-			{
-				_RewriteFile();
-			}
-		}
+			NeuralNetworkDto[] dtos = new NeuralNetworkDto[networks.Length];
 
-
-		private static bool _TryToInsertGame(Game game)
-		{
-			for (int i = 0; i < _games.Count; i++)
+			for (int i = 0; i < networks.Length; i++)
 			{
-				if (game.Equals(_games[i]))
-				{
-					return false;
-				}
+				dtos[i] = NeuralNetworkDto.FromNetwork(networks[i]);
 			}
 
-			_games.Add(game);
-			return true;
-		}
-
-
-		private static void _RewriteFile()
-		{
-			using (StreamWriter writer = new StreamWriter(fileName, false))
-			{
-				GameDto[] games = new GameDto[_games.Count];
-				for (int i = 0; i < games.Length; i++)
-				{
-					games[i] = GameDto.FromGame(_games[i]);
-				}
-				string json = JsonConvert.SerializeObject(games);
-				writer.Write(json);
-			}
-		}
-
-
-		private static void _Load()
-		{
-			if (!File.Exists(fileName))
-			{
-				_games = new List<Game>();
-				return;
-			}
-
-			using (StreamReader reader = new StreamReader(fileName))
-			{
-				string json = reader.ReadToEnd();
-				GameDto[] games = JsonConvert.DeserializeObject<GameDto[]>(json);
-				_games = new List<Game>(games.Length);
-				for (int i = 0; i < games.Length; i++)
-				{
-					_games.Add(games[i].MakeGame());
-				}
-			}
+			Save(dtos);
 		}
 	}
 
 
-	class NeuralNetworkDto
+	public class NeuralNetworkDto
 	{
 		/// <summary>
 		/// x = Layer
@@ -89,12 +52,110 @@ namespace Minesweeper
 		[JsonProperty("w")]
 		public float[][][] Weights;
 
+
 		/// <summary>
 		/// x = (layer - 1)
 		/// y = neuron
 		/// </summary>
 		[JsonProperty("b")]
 		public float[][] Biases;
-		
+
+
+		public static NeuralNetworkDto FromNetwork(NeuralNetwork network)
+		{
+			int[] layers = network.GetConstructorParams();
+			NeuralNetworkDto res = new NeuralNetworkDto();
+			res.Biases = new float[layers.Length - 1][];
+			res.Weights = new float[layers.Length - 1][][];
+
+			for (int i = 0; i < res.Biases.Length; i++)
+			{
+				float[] biasesSrc = network.GetBiasVector(i + 1);
+				float[] biasesDest = new float[biasesSrc.Length];
+
+				for (int j = 0; j < biasesSrc.Length; j++)
+				{
+					biasesDest[j] = biasesSrc[j];
+				}
+				res.Biases[i] = biasesDest;
+			}
+
+			for (int i = 0; i < res.Weights.Length; i++)
+			{
+				float[,] weightsSrc = network.GetWeightMatrix(i + 1);
+				float[][] weightsDest = new float[weightsSrc.GetLength(0)][];
+
+				for (int inIndex = 0; inIndex < weightsDest.Length; inIndex++)
+				{
+					weightsDest[inIndex] = new float[weightsSrc.GetLength(1)];
+					for (int outindex = 0; outindex < weightsDest[inIndex].Length; outindex++)
+					{
+						weightsDest[inIndex][outindex] = weightsSrc[inIndex, outindex];
+					}
+				}
+
+				res.Weights[i] = weightsDest;
+			}
+
+			return res;
+		}
+
+
+		public NeuralNetwork BuildNetwork()
+		{
+			int[] layers = _ExctractConstructorParams();
+			NeuralNetwork res = new NeuralNetwork(layers);
+
+			_SetUpBiases(res);
+			_SetUpWeights(res);
+			return res;
+		}
+
+
+		private int[] _ExctractConstructorParams()
+		{
+			int[] layers = new int[Biases.Length + 1];
+			layers[0] = Weights[0].Length;
+
+			for (int i = 0; i < Biases.Length; i++)
+			{
+				layers[i + 1] = Biases[i].Length;
+			}
+
+			return layers;
+		}
+
+
+		private void _SetUpBiases(NeuralNetwork res)
+		{
+			for (int i = 0; i < Biases.Length; i++)
+			{
+				float[] biasesDest = res.GetBiasVector(i + 1);
+				float[] biasesSrc = Biases[i];
+
+				for (int j = 0; j < biasesSrc.Length; j++)
+				{
+					biasesDest[j] = biasesSrc[j];
+				}
+			}
+		}
+
+
+		private void _SetUpWeights(NeuralNetwork res)
+		{
+			for (int i = 0; i < Weights.Length; i++)
+			{
+				float[,] weightsDest = res.GetWeightMatrix(i + 1);
+				float[][] weightsSrc = Weights[i];
+
+				for (int inIndex = 0; inIndex < weightsSrc.Length; inIndex++)
+				{
+					for (int outindex = 0; outindex < weightsSrc[inIndex].Length; outindex++)
+					{
+						weightsDest[inIndex, outindex] = weightsSrc[inIndex][outindex];
+					}
+				}
+			}
+		}
 	}
 }

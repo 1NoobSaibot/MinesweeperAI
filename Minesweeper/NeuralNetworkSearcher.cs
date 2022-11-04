@@ -10,8 +10,10 @@ namespace Minesweeper
 		private GameDto[] _games;
 		private Task _looper;
 		private object _lock = new object();
+		private readonly ModelStorage _storage;
 
 		public NeuralNetworkSearcher(int amountOfHiddenLayers) : base(100, 10) {
+			_storage = new ModelStorage(amountOfHiddenLayers);
 			LoadAllCandidates(amountOfHiddenLayers);
 			_games = GoodGameStorage.GetGameDtos();
 			_looper = new Task(_Loop);
@@ -79,6 +81,13 @@ namespace Minesweeper
 					NextGeneration();
 					Model[] choosen = GetChoosen();
 					Debug.Assert(choosen[0].Score >= choosen[1].Score);
+
+					NeuralNetwork[] networks = new NeuralNetwork[choosen.Length];
+					for (int i = 0; i < choosen.Length; i++)
+					{
+						networks[i] = choosen[i].Network;
+					}
+					_storage.Save(networks);
 				}
 			} while (true);
 		}
@@ -86,6 +95,17 @@ namespace Minesweeper
 
 		private void LoadAllCandidates(int hiddenLayers)
 		{
+			if (_storage.Data != null && _storage.Data.Length > 0)
+			{
+				NeuralNetwork[] networks = _storage.GetNetworks();
+				for (int i = 0; i < networks.Length; i++)
+				{
+					Model model = new Model(networks[i]);
+					LoadCandidate(model);
+				}
+				return;
+			}
+
 			Model firstModel = _BuildFirstModel(hiddenLayers);
 			LoadCandidate(firstModel);
 			for (int i = 1; i < AmountOfChoosen; i++)
@@ -148,6 +168,11 @@ namespace Minesweeper
 			BornInGeneration = bornInGeneration;
 		}
 
+		public Model(NeuralNetwork neuralNetwork)
+		{
+			Network = neuralNetwork;
+		}
+
 		internal Model Mutate(Random rand, int currentGeneration)
 		{
 			NeuralNetwork copy = Network.Clone();
@@ -202,6 +227,14 @@ namespace Minesweeper
 				layersString += layers[i].ToString() + " ";
 			}
 			return $"{layersString} Score = {Score}";
+		}
+
+
+		internal Model Clone()
+		{
+			Model clone = new Model(Network.Clone());
+			clone.Score = Score;
+			return clone;
 		}
 	}
 

@@ -36,7 +36,7 @@ namespace Minesweeper
 
 				if (_theBestModel == null || gotModel.Score > TheBestModel.Score)
 				{
-					_theBestModel = gotModel;
+					_theBestModel = gotModel.Clone();
 				}
 			} while (true);
 		}
