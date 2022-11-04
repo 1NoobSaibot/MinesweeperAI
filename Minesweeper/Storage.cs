@@ -44,7 +44,15 @@ namespace Minesweeper
 			using (StreamReader reader = new StreamReader(fileName))
 			{
 				string json = reader.ReadToEnd();
-				_data = JsonConvert.DeserializeObject<T>(json);
+				try
+				{
+					_data = JsonConvert.DeserializeObject<T>(json);
+				}
+				catch (JsonException exeption)
+				{
+					// TODO: It's a bad idea to ignore loosing data!!
+					_data = null;
+				}
 			}
 		}
 	}

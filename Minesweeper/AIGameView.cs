@@ -60,11 +60,21 @@ namespace Minesweeper
 			NeuralNetwork network = theBestModel.Network;
 			
 			GameDto[] games = GoodGameStorage.GetGameDtos();
+			if (games.Length == 0)
+			{
+				return;
+			}
 			_gamePlayer = new AIGamePlayer(games[rand.Next(games.Length)], network);
 			gameView1.AttachToGame(_gamePlayer.Game);
 
 			string title = theBestModel.ToString() + " / " + _maxScore;
 			this.Text = title;
+		}
+
+
+		private void AIGameView_FormClosing(object sender, FormClosingEventArgs e)
+		{
+			_searchers.StopAndWait();
 		}
 	}
 }

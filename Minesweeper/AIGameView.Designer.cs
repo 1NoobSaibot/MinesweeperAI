@@ -54,6 +54,7 @@
 			this.Controls.Add(this.gameView1);
 			this.Name = "AIGameView";
 			this.Text = "Form1";
+			this.FormClosing += new System.Windows.Forms.FormClosingEventHandler(this.AIGameView_FormClosing);
 			this.ResumeLayout(false);
 
 		}

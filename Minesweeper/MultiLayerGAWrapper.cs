@@ -1,4 +1,5 @@
-﻿using System.Threading.Tasks;
+﻿using System;
+using System.Threading.Tasks;
 
 namespace Minesweeper
 {
@@ -11,6 +12,7 @@ namespace Minesweeper
 		private readonly NeuralNetworkSearcher[] _searchers;
 		private readonly Task _theBestTaker;
 		private Model _theBestModel;
+		private bool _isStopped = false;
 		public Model TheBestModel => _theBestModel;
 
 		public MultiLayerGAWrapper(params int[] hiddenLayersAmounts)
@@ -38,7 +40,23 @@ namespace Minesweeper
 				{
 					_theBestModel = gotModel.Clone();
 				}
-			} while (true);
+			} while (!_isStopped);
+		}
+
+
+		public void StopAndWait()
+		{
+			_isStopped = true;
+			for (int i = 0; i < _searchers.Length; i++)
+			{
+				_searchers[i].Stop();
+			}
+
+			_theBestTaker.Wait();
+			for (int i = 0; i < _searchers.Length; i++)
+			{
+				_searchers[i].Wait();
+			}
 		}
 	}
 }

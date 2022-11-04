@@ -7,7 +7,7 @@ namespace Minesweeper
 	{
 		private const string _fileNamePrefix = "AI_5x5_";
 
-		public ModelStorage(int forAmountOfLayer) : base(_fileNamePrefix + forAmountOfLayer)
+		public ModelStorage(int forAmountOfLayer) : base(_fileNamePrefix + forAmountOfLayer + ".json")
 		{ }
 
 

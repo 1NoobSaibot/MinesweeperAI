@@ -11,6 +11,8 @@ namespace Minesweeper
 		private Task _looper;
 		private object _lock = new object();
 		private readonly ModelStorage _storage;
+		private bool _isStopped = false;
+
 
 		public NeuralNetworkSearcher(int amountOfHiddenLayers) : base(100, 10) {
 			_storage = new ModelStorage(amountOfHiddenLayers);
@@ -89,7 +91,7 @@ namespace Minesweeper
 					}
 					_storage.Save(networks);
 				}
-			} while (true);
+			} while (!_isStopped);
 		}
 
 
@@ -151,6 +153,18 @@ namespace Minesweeper
 					}
 				}
 			}
+		}
+
+
+		public void Stop()
+		{
+			_isStopped = true;
+		}
+
+
+		public void Wait()
+		{
+			_looper.Wait();
 		}
 	}
 
