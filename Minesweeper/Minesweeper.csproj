@@ -82,6 +82,7 @@
       <DependentUpon>GameView.cs</DependentUpon>
     </Compile>
     <Compile Include="GoodGameStorage.cs" />
+    <Compile Include="MultiLayerGAWrapper.cs" />
     <Compile Include="NeuralNetworkSearcher.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

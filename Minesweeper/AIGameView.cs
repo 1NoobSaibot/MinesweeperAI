@@ -6,7 +6,7 @@ namespace Minesweeper
 {
 	public partial class AIGameView : Form
 	{
-		private NeuralNetworkSearcher[] _searchers;
+		private MultiLayerGAWrapper _searchers;
 		private AIGamePlayer _gamePlayer;
 		private readonly int _maxScore;
 
@@ -16,11 +16,7 @@ namespace Minesweeper
 			InitializeComponent();
 			gameView1.Enabled = false;
 
-			_searchers = new NeuralNetworkSearcher[3];
-			for (int i = 0; i < _searchers.Length; i++)
-			{
-				_searchers[i] = new NeuralNetworkSearcher(i + 1);
-			}
+			_searchers = new MultiLayerGAWrapper(1, 2, 3);
 
 			GameDto[] games = GoodGameStorage.GetGameDtos();
 			int maxScore = 0;
@@ -56,7 +52,11 @@ namespace Minesweeper
 		private void _CreatePlayer()
 		{
 			Random rand = new Random();
-			Model theBestModel = _FindTheBestNetwork();
+			Model theBestModel = _searchers.TheBestModel;
+			if (theBestModel == null)
+			{
+				return;
+			}
 			NeuralNetwork network = theBestModel.Network;
 			
 			GameDto[] games = GoodGameStorage.GetGameDtos();
@@ -65,27 +65,6 @@ namespace Minesweeper
 
 			string title = theBestModel.ToString() + " / " + _maxScore;
 			this.Text = title;
-		}
-
-
-		private Model _FindTheBestNetwork()
-		{
-			Model[] models = new Model[_searchers.Length];
-			for (int i = 0; i < models.Length; i++)
-			{
-				models[i] = _searchers[i].GetChoosen()[0];
-			}
-
-			Model maxModel = models[0];
-			for (int i = 1; i < models.Length; i++)
-			{
-				if (models[i].Score > maxModel.Score)
-				{
-					maxModel = models[i];
-				}
-			}
-
-			return maxModel;
 		}
 	}
 }

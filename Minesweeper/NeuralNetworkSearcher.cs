@@ -9,12 +9,22 @@ namespace Minesweeper
 	{
 		private GameDto[] _games;
 		private Task _looper;
+		private object _lock = new object();
 
 		public NeuralNetworkSearcher(int amountOfHiddenLayers) : base(100, 10) {
 			LoadAllCandidates(amountOfHiddenLayers);
 			_games = GoodGameStorage.GetGameDtos();
 			_looper = new Task(_Loop);
 			_looper.Start();
+		}
+
+
+		public new Model[] GetChoosen()
+		{
+			lock	(_lock)
+			{
+				return base.GetChoosen();
+			}
 		}
 
 
@@ -64,9 +74,12 @@ namespace Minesweeper
 		{
 			do
 			{
-				NextGeneration();
-				Model[] choosen = GetChoosen();
-				Debug.Assert(choosen[0].Score >= choosen[1].Score);
+				lock (_lock)
+				{
+					NextGeneration();
+					Model[] choosen = GetChoosen();
+					Debug.Assert(choosen[0].Score >= choosen[1].Score);
+				}
 			} while (true);
 		}
 
