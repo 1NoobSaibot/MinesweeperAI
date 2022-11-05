@@ -56,6 +56,7 @@
     <Compile Include="AIGameView.Designer.cs">
       <DependentUpon>AIGameView.cs</DependentUpon>
     </Compile>
+    <Compile Include="GameGenerator.cs" />
     <Compile Include="ModelStorage.cs" />
     <Compile Include="HumanGameView.cs">
       <SubType>Form</SubType>

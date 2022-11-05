@@ -18,14 +18,7 @@ namespace Minesweeper
 
 			_searchers = new MultiLayerGAWrapper(1, 2, 3);
 
-			GameDto[] games = GoodGameStorage.GetGameDtos();
-			int maxScore = 0;
-			for (int i = 0; i < games.Length; i++)
-			{
-				maxScore += games[i].Width * games[i].Height;
-			}
-
-			this._maxScore = maxScore;
+			this._maxScore = 10000;
 			gameLooper.Start();
 		}
 		

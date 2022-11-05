@@ -1,12 +1,12 @@
 ﻿using NeuroLib;
 using System;
 using System.Threading.Tasks;
-using System.Diagnostics;
 
 namespace Minesweeper
 {
 	internal class NeuralNetworkSearcher : GeneticAlgorithm<Model>
 	{
+		private readonly GameGenerator _gameGenerator = new GameGenerator(10, 10, 18);
 		private GameDto[] _games;
 		private Task _looper;
 		private object _lock = new object();
@@ -20,7 +20,6 @@ namespace Minesweeper
 		public NeuralNetworkSearcher(int amountOfHiddenLayers) : base(100, 10) {
 			_storage = new ModelStorage(amountOfHiddenLayers);
 			LoadAllCandidates(amountOfHiddenLayers);
-			_games = GoodGameStorage.GetGameDtos();
 			_looper = new Task(_Loop);
 			_looper.Start();
 		}
@@ -45,7 +44,8 @@ namespace Minesweeper
 				return b.Score - a.Score;
 			}
 
-			return b.BornInGeneration - a.BornInGeneration;
+			// The older is the best
+			return a.BornInGeneration - b.BornInGeneration;
 		}
 
 		public override Model Cross(Model modelA, Model modelB)
@@ -81,26 +81,34 @@ namespace Minesweeper
 		{
 			do
 			{
+				_games = _gameGenerator.GenerateMany(Rand, 100);
 				lock (_lock)
 				{
 					NextGeneration();
-					Model[] choosen = GetChoosen();
-					Debug.Assert(choosen[0].Score >= choosen[1].Score);
-
-					NeuralNetwork[] networks = new NeuralNetwork[choosen.Length];
-					for (int i = 0; i < choosen.Length; i++)
-					{
-						networks[i] = choosen[i].Network;
-					}
-
+					
 					DateTime now = DateTime.Now;
 					if (now - _lastSaveMoment > _saveEvery)
 					{
-						_storage.Save(networks);
+						_SaveModels();
 						_lastSaveMoment = now;
 					}
 				}
 			} while (!_isStopped);
+
+			_SaveModels();
+		}
+
+
+		private void _SaveModels()
+		{
+			Model[] choosen = GetChoosen();
+			NeuralNetwork[] networks = new NeuralNetwork[choosen.Length];
+			for (int i = 0; i < choosen.Length; i++)
+			{
+				networks[i] = choosen[i].Network;
+			}
+
+			_storage.Save(networks);
 		}
 
 
