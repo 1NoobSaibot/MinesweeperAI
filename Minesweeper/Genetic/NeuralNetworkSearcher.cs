@@ -29,12 +29,12 @@ namespace Minesweeper
 
 			_mutator = new ModificationQueue<NeuralNetwork>(
 				new NeuralNetworkCloner(),
-				new NeuralNetworkMutator(
-					new Modifier<NeuralNetwork>[]
+				new RandomModification<NeuralNetwork>(
+					new ModificationWeight<NeuralNetwork>[]
 					{
-						new RandomNeuronInserter(Rand),
-						new RandomNeuronRemover(Rand),
-						new RandomParamChanger(Rand)
+						new ModificationWeight<NeuralNetwork>(new RandomNeuronInserter(Rand), 1),
+						new ModificationWeight<NeuralNetwork>(new RandomNeuronRemover(Rand), 3),
+						new ModificationWeight<NeuralNetwork>(new RandomParamChanger(Rand), 1000)
 					},
 					Rand
 				)

@@ -43,27 +43,6 @@ namespace Minesweeper
 	}
 
 
-	class NeuralNetworkMutator : Modifier<NeuralNetwork>
-	{
-		private Random _rnd;
-		private Modifier<NeuralNetwork>[] _modifiers;
-
-
-		public NeuralNetworkMutator(Modifier<NeuralNetwork>[] modifiers, Random rnd)
-		{
-			_modifiers = modifiers;
-			_rnd = rnd;
-		}
-
-
-		public override NeuralNetwork Modify(NeuralNetwork original)
-		{
-			int mutatorIndex = _rnd.Next(_modifiers.Length);
-			return _modifiers[mutatorIndex].Modify(original);
-		}
-	}
-
-
 	enum Decision
 	{
 		Open = 0,
