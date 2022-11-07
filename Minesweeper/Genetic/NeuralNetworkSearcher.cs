@@ -1,4 +1,5 @@
 ﻿using NeuroLib;
+using NeuroLib.RegularNeuralNetwork.Evolution;
 using System;
 using System.Threading.Tasks;
 
@@ -18,11 +19,27 @@ namespace Minesweeper
 
 		public event Action<NeuralNetworkSearcher> OnNewGeneration;
 
+		private Modifier<NeuralNetwork> _mutator;
+
 
 		public NeuralNetworkSearcher(int amountOfHiddenLayers) : base(100, 10) {
 			_storage = new ModelStorage(amountOfHiddenLayers);
 			LoadAllCandidates(amountOfHiddenLayers);
 			_looper = new Task(_Loop);
+
+			_mutator = new ModificationQueue<NeuralNetwork>(
+				new NeuralNetworkCloner(),
+				new NeuralNetworkMutator(
+					new Modifier<NeuralNetwork>[]
+					{
+						new RandomNeuronInserter(Rand),
+						new RandomNeuronRemover(Rand),
+						new RandomParamChanger(Rand)
+					},
+					Rand
+				)
+			);
+
 			_looper.Start();
 		}
 
@@ -61,7 +78,8 @@ namespace Minesweeper
 
 		public override Model Mutate(Model model)
 		{
-			return model.Mutate(Rand, GenerationCounter);
+			NeuralNetwork mutatedClone = _mutator.Modify(model.Network);
+			return new Model(mutatedClone, GenerationCounter);
 		}
 
 
@@ -174,29 +192,29 @@ namespace Minesweeper
 	}
 
 
-	class Model
+	class RandomParamChanger : Modifier<NeuralNetwork>
 	{
-		public readonly NeuralNetwork Network;
-		public readonly int BornInGeneration;
-		public int Score;
+		private Random _rnd;
 
 
-		public Model(NeuralNetwork network, int bornInGeneration)
+		public RandomParamChanger(Random rnd)
 		{
-			Network = network;
-			BornInGeneration = bornInGeneration;
+			_rnd = rnd;
 		}
 
-		public Model(NeuralNetwork neuralNetwork)
+
+		public override NeuralNetwork Modify(NeuralNetwork original)
 		{
-			Network = neuralNetwork;
+			Mutate(original);
+			return original;
 		}
 
-		internal Model Mutate(Random rand, int currentGeneration)
+
+		internal void Mutate(NeuralNetwork net)
 		{
-			NeuralNetwork copy = Network.Clone();
-			int layer = rand.Next(Network.AmountOfLayers - 1) + 1;
-			if (rand.Next() % 2 == 0)
+			NeuralNetwork copy = net.Clone();
+			int layer = _rnd.Next(net.AmountOfLayers - 1) + 1;
+			if (_rnd.Next() % 2 == 0)
 			{
 				_ChangeRandomBias();
 			}
@@ -205,63 +223,34 @@ namespace Minesweeper
 				_ChangeRandomWeight();
 			}
 
-			return new Model(copy, currentGeneration);
 
 			void _ChangeRandomBias()
 			{
-				float[] biases = Network.GetBiasVector(layer);
-				int x = rand.Next(biases.Length);
+				float[] biases = net.GetBiasVector(layer);
+				int x = _rnd.Next(biases.Length);
 				biases[x] = _ChangeValueRandomly(biases[x]);
 			}
 
 
 			void _ChangeRandomWeight()
 			{
-				float[,] weights = Network.GetWeightMatrix(layer);
-				int x = rand.Next(weights.GetLength(0));
-				int y = rand.Next(weights.GetLength(1));
+				float[,] weights = net.GetWeightMatrix(layer);
+				int x = _rnd.Next(weights.GetLength(0));
+				int y = _rnd.Next(weights.GetLength(1));
 				weights[x, y] = _ChangeValueRandomly(weights[x, y]);
 			}
 
 			float _ChangeValueRandomly(float originalValue)
 			{
-				int precision = rand.Next(7);
+				int precision = _rnd.Next(7);
 				int order = originalValue == 0.0
 				? 0
 					: (int)Math.Log10(Math.Abs(originalValue));
 
 				float scale = (float)Math.Pow(10, order - precision);
-				float difference = (float)rand.NextDouble() * 2 - 1;
+				float difference = (float)_rnd.NextDouble() * 2 - 1;
 				return originalValue + scale * difference;
 			}
 		}
-
-
-		public override string ToString()
-		{
-			int[] layers = Network.GetConstructorParams();
-			string layersString = String.Empty;
-			for (int i = 0; i < layers.Length; i++)
-			{
-				layersString += layers[i].ToString() + " ";
-			}
-			return $"{layersString} Score = {Score}";
-		}
-
-
-		internal Model Clone()
-		{
-			Model clone = new Model(Network.Clone());
-			clone.Score = Score;
-			return clone;
-		}
-	}
-
-
-	enum Decision
-	{
-		Open = 0,
-		Check = 1,
-		Skip = 2
 	}
 }
