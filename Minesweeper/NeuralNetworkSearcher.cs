@@ -156,23 +156,8 @@ namespace Minesweeper
 
 		private void _RandomizeParams(NeuralNetwork net)
 		{
-			int[] layers = net.GetConstructorParams();
-
-			for (int i = 1; i < layers.Length; i++)
-			{
-				float[] biasVector = net.GetBiasVector(i);
-				float[,] weightMatrix = net.GetWeightMatrix(i);
-
-				for (int j = 0; j < biasVector.Length; j++)
-				{
-					biasVector[j] = (float)Rand.NextDouble() * 2 - 1;
-
-					for (int inNeuron = 0; inNeuron < weightMatrix.GetLength(0); inNeuron++)
-					{
-						weightMatrix[inNeuron, j] = (float)Rand.NextDouble() * 2 - 1;
-					}
-				}
-			}
+			NeuralNetworkRandomiser randomiser = new NeuralNetworkRandomiser(Rand);
+			randomiser.Modify(net);
 		}
 
 
