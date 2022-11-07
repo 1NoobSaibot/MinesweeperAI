@@ -16,6 +16,8 @@ namespace Minesweeper
 		private readonly TimeSpan _saveEvery = TimeSpan.FromMinutes(5);
 		private DateTime _lastSaveMoment = DateTime.Now;
 
+		public event Action<NeuralNetworkSearcher> OnNewGeneration;
+
 
 		public NeuralNetworkSearcher(int amountOfHiddenLayers) : base(100, 10) {
 			_storage = new ModelStorage(amountOfHiddenLayers);
@@ -85,6 +87,7 @@ namespace Minesweeper
 				lock (_lock)
 				{
 					NextGeneration();
+					OnNewGeneration?.Invoke(this);
 					
 					DateTime now = DateTime.Now;
 					if (now - _lastSaveMoment > _saveEvery)

@@ -1,7 +1,4 @@
-﻿using System;
-using System.Threading.Tasks;
-
-namespace Minesweeper
+﻿namespace Minesweeper
 {
 	/// <summary>
 	/// This class wraps few instanses of genetic algorithm containers.
@@ -10,10 +7,19 @@ namespace Minesweeper
 	internal class MultiLayerGAWrapper
 	{
 		private readonly NeuralNetworkSearcher[] _searchers;
-		private readonly Task _theBestTaker;
 		private Model _theBestModel;
-		private bool _isStopped = false;
-		public Model TheBestModel => _theBestModel;
+		private object _theBestLocker = new object();
+
+
+		public Model TheBestModel {
+			get {
+				lock (_theBestLocker)
+				{
+					return _theBestModel;
+				}
+			}
+		}
+
 
 		public MultiLayerGAWrapper(params int[] hiddenLayersAmounts)
 		{
@@ -21,38 +27,31 @@ namespace Minesweeper
 			for (int i = 0; i < hiddenLayersAmounts.Length; i++)
 			{
 				_searchers[i] = new NeuralNetworkSearcher(hiddenLayersAmounts[i]);
+				_searchers[i].OnNewGeneration += _UpdateTheBest;
 			}
-
-			_theBestTaker = new Task(_FindTheBest);
-			_theBestTaker.Start();
 		}
 
 
-		private void _FindTheBest()
+		private void _UpdateTheBest(NeuralNetworkSearcher searcher)
 		{
-			int counter = 0;
-			do
+			Model gotModel = searcher.GetChoosen()[0];
+			lock (_theBestLocker)
 			{
-				Model gotModel = _searchers[counter % _searchers.Length].GetChoosen()[0];
-				counter++;
-
 				if (_theBestModel == null || gotModel.Score > TheBestModel.Score)
 				{
 					_theBestModel = gotModel.Clone();
 				}
-			} while (!_isStopped);
+			}
 		}
 
 
 		public void StopAndWait()
 		{
-			_isStopped = true;
 			for (int i = 0; i < _searchers.Length; i++)
 			{
 				_searchers[i].Stop();
 			}
 
-			_theBestTaker.Wait();
 			for (int i = 0; i < _searchers.Length; i++)
 			{
 				_searchers[i].Wait();
